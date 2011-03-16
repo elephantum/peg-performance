@@ -33,85 +33,57 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-class Move:
-    def __init__(self, fromh, jumped, to):
-        self.fromh = fromh
-        self.jumped = jumped
-        self.to = to
+import collections
 
-    def __str__(self):
-        return str(self.fromh) + " -> " + str(self.jumped) + " -> " + str(self.to)
+Move = collections.namedtuple('Move', 'fromh jumped to')
+Coordinate = collections.namedtuple('Coordinate', 'row hole')
 
-
-class Coordinate:
-    def __init__(self, row, hole):
-        if (hole < 1):
-            raise RuntimeError, "Illegal hole number: " + hole + " < 1"
-        if (hole > row):
-            raise RuntimeError, "Illegal hole number: " + hole + " on row " + row
-        self.hole = hole
-        self.row = row
-        self._hash = hash((hole, row))
-
-    def possibleMoves(self, rowCount):
-        moves = []
+def possibleMoves(self, rowCount):
+    # upward (needs at least 2 rows above)
+    if (self.row >= 3):
         
-        # upward (needs at least 2 rows above)
-        if (self.row >= 3):
-            
-            # up-left
-            if (self.hole >= 3):
-                moves.append(Move(
-                        self,
-                        Coordinate(self.row - 1, self.hole - 1),
-                        Coordinate(self.row - 2, self.hole - 2)))
-            
-            # up-right
-            if (self.row - self.hole >= 2):
-                moves.append(Move(
-                        self,
-                        Coordinate(self.row - 1, self.hole),
-                        Coordinate(self.row - 2, self.hole)))
-        
-        # leftward (needs at least 2 pegs to the left)
+        # up-left
         if (self.hole >= 3):
-            moves.append(Move(
+            yield Move(
                     self,
-                    Coordinate(self.row, self.hole - 1),
-                    Coordinate(self.row, self.hole - 2)))
+                    Coordinate(self.row - 1, self.hole - 1),
+                    Coordinate(self.row - 2, self.hole - 2))
         
-        # rightward (needs at least 2 holes to the right)
+        # up-right
         if (self.row - self.hole >= 2):
-            moves.append(Move(
+            yield Move(
                     self,
-                    Coordinate(self.row, self.hole + 1),
-                    Coordinate(self.row, self.hole + 2)))
+                    Coordinate(self.row - 1, self.hole),
+                    Coordinate(self.row - 2, self.hole))
+    
+    # leftward (needs at least 2 pegs to the left)
+    if (self.hole >= 3):
+        yield Move(
+                self,
+                Coordinate(self.row, self.hole - 1),
+                Coordinate(self.row, self.hole - 2))
+    
+    # rightward (needs at least 2 holes to the right)
+    if (self.row - self.hole >= 2):
+        yield Move(
+                self,
+                Coordinate(self.row, self.hole + 1),
+                Coordinate(self.row, self.hole + 2))
 
-        # downward (needs at least 2 rows below)
-        if (rowCount - self.row >= 2):
-            
-            # down-left (always possible when there are at least 2 rows below)
-            moves.append(Move(
-                    self,
-                    Coordinate(self.row + 1, self.hole),
-                    Coordinate(self.row + 2, self.hole)))
-            
-            # down-right (always possible when there are at least 2 rows below)
-            moves.append(Move(
-                    self,
-                    Coordinate(self.row + 1, self.hole + 1),
-                    Coordinate(self.row + 2, self.hole + 2)))
+    # downward (needs at least 2 rows below)
+    if (rowCount - self.row >= 2):
         
-        return moves
-    
-    def __str__(self):
-        return "r" + str(self.row) + "h" + str(self.hole)
-
-    def __eq__(self, other):
-        return self.row == other.row and self.hole == other.hole
-    
-    def __hash__(self):
-        return self._hash
+        # down-left (always possible when there are at least 2 rows below)
+        yield Move(
+                self,
+                Coordinate(self.row + 1, self.hole),
+                Coordinate(self.row + 2, self.hole))
+        
+        # down-right (always possible when there are at least 2 rows below)
+        yield Move(
+                self,
+                Coordinate(self.row + 1, self.hole + 1),
+                Coordinate(self.row + 2, self.hole + 2))
 
 
 class GameState:
@@ -152,8 +124,7 @@ class GameState:
     def legalMoves(self):
         legalMoves = []
         for c in self.occupiedHoles:
-            possibleMoves = c.possibleMoves(self.rowCount);
-            for m in possibleMoves:
+            for m in possibleMoves(c, self.rowCount):
                 containsJumped = m.jumped in self.occupiedHoles
                 containsTo = m.to in self.occupiedHoles
 
@@ -185,44 +156,48 @@ class GameState:
         return "".join(sb)
 
 
-gamesPlayed = 0
-solutions = []
-
-def search(gs, moveStack):
-    global gamesPlayed
-    global solutions
+def performance():
+    class GlobalStats:
+        def __init__(self):
+            self.gamesPlayed = 0
+            self.solutions = []
+    globalStats = GlobalStats()
     
-    if (gs.pegsRemaining() == 1):
-        #print("Found a winning sequence. Final state:")
-        #print(gs);
-
-        solutionCopy = []
-        solutionCopy.extend(moveStack)
-        solutions.append(solutionCopy)
+    def search(gs, moveStack):
+        if (gs.pegsRemaining() == 1):
+            #print("Found a winning sequence. Final state:")
+            #print(gs);
+    
+            globalStats.solutions.append(moveStack)
+            
+            globalStats.gamesPlayed += 1
+            
+            return
         
-        gamesPlayed += 1
+        legalMoves = gs.legalMoves()
         
-        return
+        if (len(legalMoves) == 0):
+            globalStats.gamesPlayed += 1
+            return
+        
+        for m in legalMoves:
+            nextState = gs.applyMove(m)
+            moveStack.append(m)
+            search(nextState, moveStack)
+            moveStack.pop()
     
-    legalMoves = gs.legalMoves()
+    from time import time
     
-    if (len(legalMoves) == 0):
-        gamesPlayed += 1
-        return
+    startTime = time()
+    gs = GameState(5, Coordinate(3, 2))
+    search(gs, [])
+    endTime = time()
     
-    for m in legalMoves:
-        nextState = gs.applyMove(m)
-        moveStack.append(m)
-        search(nextState, moveStack)
-        moveStack.pop()
+    return globalStats.gamesPlayed, globalStats.solutions, endTime - startTime
 
-from time import time
-
-startTime = time()
-gs = GameState(5, Coordinate(3, 2))
-search(gs, [])
-endTime = time()
-
-print "Games played:    %6d" % (gamesPlayed)
-print "Solutions found: %6d" % (len(solutions))
-print "Time elapsed:    %6dms" % ((endTime - startTime) * 1000)
+if __name__ == '__main__':
+    gamesPlayed, solutions, durations = performance()
+    
+    print "Games played:    %6d" % (gamesPlayed)
+    print "Solutions found: %6d" % (len(solutions))
+    print "Time elapsed:    %6dms" % (durations * 1000)
