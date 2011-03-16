@@ -35,11 +35,8 @@
 
 import collections
 
-# (fromh, jumped, to)
-def Move(*args): return args
-
-# (row, hole)
-def Coordinate(*args): return args
+# Move: (fromh, jumped, to)
+# Coordinate: (row, hole)
 
 def possibleMoves(self, rowCount):
     row, hole = self
@@ -49,34 +46,34 @@ def possibleMoves(self, rowCount):
         
         # up-left
         if (hole >= 3):
-            yield (Coordinate(row - 1, hole - 1),
-                   Coordinate(row - 2, hole - 2))
+            yield ((row - 1, hole - 1),
+                   (row - 2, hole - 2))
         
         # up-right
         if (row - hole >= 2):
-            yield (Coordinate(row - 1, hole),
-                   Coordinate(row - 2, hole))
+            yield ((row - 1, hole),
+                   (row - 2, hole))
     
     # leftward (needs at least 2 pegs to the left)
     if (hole >= 3):
-        yield (Coordinate(row, hole - 1),
-               Coordinate(row, hole - 2))
+        yield ((row, hole - 1),
+               (row, hole - 2))
     
     # rightward (needs at least 2 holes to the right)
     if (row - hole >= 2):
-        yield (Coordinate(row, hole + 1),
-               Coordinate(row, hole + 2))
+        yield ((row, hole + 1),
+               (row, hole + 2))
 
     # downward (needs at least 2 rows below)
     if (rowCount - row >= 2):
         
         # down-left (always possible when there are at least 2 rows below)
-        yield (Coordinate(row + 1, hole),
-               Coordinate(row + 2, hole))
+        yield ((row + 1, hole),
+               (row + 2, hole))
         
         # down-right (always possible when there are at least 2 rows below)
-        yield (Coordinate(row + 1, hole + 1),
-               Coordinate(row + 2, hole + 2))
+        yield ((row + 1, hole + 1),
+               (row + 2, hole + 2))
 
 
 class GameState:
@@ -112,7 +109,7 @@ class GameState:
             self.occupiedHoles = set()
             for row in xrange(1, rows + 1):
                 for hole in xrange(1, row + 1):
-                    peg = Coordinate(row, hole)
+                    peg = (row, hole)
                     if (not peg == emptyHole):
                         self.occupiedHoles.add(peg)
 
@@ -121,7 +118,7 @@ class GameState:
         for c in self.occupiedHoles:
             for jumped, to in possibleMoves(c, self.rowCount):
                 if jumped in self.occupiedHoles and to not in self.occupiedHoles:
-                    legalMoves.append(Move(c, jumped, to))
+                    legalMoves.append((c, jumped, to))
                 
         return legalMoves
     
@@ -140,7 +137,7 @@ class GameState:
             for _ in range(0, indent):
                 sb.append(" ")
             for hole in range(1, row + 1):
-                if Coordinate(row, hole) in self.occupiedHoles:
+                if (row, hole) in self.occupiedHoles:
                     sb.append(" *")
                 else:
                     sb.append(" O")
@@ -181,7 +178,7 @@ def performance():
     from time import time
     
     startTime = time()
-    gs = GameState(5, Coordinate(3, 2))
+    gs = GameState(5, (3, 2))
     search(gs, [])
     endTime = time()
     
