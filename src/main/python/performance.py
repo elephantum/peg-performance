@@ -39,19 +39,6 @@ class Move:
         self.jumped = jumped
         self.to = to
 
-    def get_fromh(self):
-        return self.fromh
-
-    def get_jumped(self):
-        return self.jumped
-
-    def get_to(self):
-        return self.to
-
-    fromh = property(get_fromh)
-    jumped = property(get_jumped)
-    to = property(get_to)
-
     def __str__(self):
         return str(self.fromh) + " -> " + str(self.jumped) + " -> " + str(self.to)
 
@@ -64,15 +51,7 @@ class Coordinate:
             raise RuntimeError, "Illegal hole number: " + hole + " on row " + row
         self.hole = hole
         self.row = row
-
-    def get_hole(self):
-        return self.hole
-
-    def get_row(self):
-        return self.row
-
-    hole = property(get_row)
-    row = property(get_hole)
+        self._hash = hash((hole, row))
 
     def possibleMoves(self, rowCount):
         moves = []
@@ -130,6 +109,9 @@ class Coordinate:
 
     def __eq__(self, other):
         return self.row == other.row and self.hole == other.hole
+    
+    def __hash__(self):
+        return self._hash
 
 
 class GameState:
@@ -139,8 +121,8 @@ class GameState:
         if initialState != None:
             # top-secret constructor overload for applying a move
             self.rowCount = initialState.rowCount
-            self.occupiedHoles = []
-            self.occupiedHoles.extend(initialState.occupiedHoles)
+            self.occupiedHoles = set()
+            self.occupiedHoles.update(initialState.occupiedHoles)
 
             # Note to those comparing this implementation to the others:
             # List.remove() raises ValueError if thr requested item is
@@ -156,17 +138,17 @@ class GameState:
             if (applyMe.to.row > self.rowCount or applyMe.to.row < 1):
                 raise RuntimeError, "Move is not legal because the 'to' hole does not exist: " + str(applyMe.to)
 
-            self.occupiedHoles.append(applyMe.to)
+            self.occupiedHoles.add(applyMe.to)
 
         else:
             # normal constructor that sets up board
             self.rowCount = rows;
-            self.occupiedHoles = []
+            self.occupiedHoles = set()
             for row in range(1, rows + 1):
                 for hole in range(1, row + 1):
                     peg = Coordinate(row, hole)
                     if (not peg == emptyHole):
-                        self.occupiedHoles.append(peg)
+                        self.occupiedHoles.add(peg)
 
     def legalMoves(self):
         legalMoves = []
