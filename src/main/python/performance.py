@@ -121,8 +121,7 @@ class GameState:
         if initialState != None:
             # top-secret constructor overload for applying a move
             self.rowCount = initialState.rowCount
-            self.occupiedHoles = set()
-            self.occupiedHoles.update(initialState.occupiedHoles)
+            self.occupiedHoles = initialState.occupiedHoles.copy()
 
             # Note to those comparing this implementation to the others:
             # List.remove() raises ValueError if thr requested item is
@@ -175,7 +174,7 @@ class GameState:
         sb.append("Game with " + str(self.pegsRemaining()) + " pegs:\n")
         for row in range(1, self.rowCount + 1):
             indent = self.rowCount - row
-            for i in range(0, indent):
+            for _ in range(0, indent):
                 sb.append(" ")
             for hole in range(1, row + 1):
                 if Coordinate(row, hole) in self.occupiedHoles:
@@ -188,7 +187,7 @@ class GameState:
 
 gamesPlayed = 0
 solutions = []
-    
+
 def search(gs, moveStack):
     global gamesPlayed
     global solutions
