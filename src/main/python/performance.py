@@ -35,58 +35,48 @@
 
 import collections
 
-Move = collections.namedtuple('Move', 'fromh jumped to')
-Coordinate = collections.namedtuple('Coordinate', 'row hole')
+# (fromh, jumped, to)
+def Move(*args): return args
+
+# (row, hole)
+def Coordinate(*args): return args
 
 def possibleMoves(self, rowCount):
-    row = self.row
-    hole = self.hole
+    row, hole = self
     
     # upward (needs at least 2 rows above)
     if (row >= 3):
         
         # up-left
         if (hole >= 3):
-            yield Move(
-                    self,
-                    Coordinate(row - 1, hole - 1),
-                    Coordinate(row - 2, hole - 2))
+            yield (Coordinate(row - 1, hole - 1),
+                   Coordinate(row - 2, hole - 2))
         
         # up-right
         if (row - hole >= 2):
-            yield Move(
-                    self,
-                    Coordinate(row - 1, hole),
-                    Coordinate(row - 2, hole))
+            yield (Coordinate(row - 1, hole),
+                   Coordinate(row - 2, hole))
     
     # leftward (needs at least 2 pegs to the left)
     if (hole >= 3):
-        yield Move(
-                self,
-                Coordinate(row, hole - 1),
-                Coordinate(row, hole - 2))
+        yield (Coordinate(row, hole - 1),
+               Coordinate(row, hole - 2))
     
     # rightward (needs at least 2 holes to the right)
     if (row - hole >= 2):
-        yield Move(
-                self,
-                Coordinate(row, hole + 1),
-                Coordinate(row, hole + 2))
+        yield (Coordinate(row, hole + 1),
+               Coordinate(row, hole + 2))
 
     # downward (needs at least 2 rows below)
     if (rowCount - row >= 2):
         
         # down-left (always possible when there are at least 2 rows below)
-        yield Move(
-                self,
-                Coordinate(row + 1, hole),
-                Coordinate(row + 2, hole))
+        yield (Coordinate(row + 1, hole),
+               Coordinate(row + 2, hole))
         
         # down-right (always possible when there are at least 2 rows below)
-        yield Move(
-                self,
-                Coordinate(row + 1, hole + 1),
-                Coordinate(row + 2, hole + 2))
+        yield (Coordinate(row + 1, hole + 1),
+               Coordinate(row + 2, hole + 2))
 
 
 class GameState:
@@ -103,16 +93,18 @@ class GameState:
             # not present, so the explicit errors are not raised here.
             # The self-checking nature of this method is still intact.
 
-            self.occupiedHoles.remove(applyMe.fromh)
-            self.occupiedHoles.remove(applyMe.jumped)
+            fromh, jumped, to = applyMe
 
-            if applyMe.to in self.occupiedHoles:
+            self.occupiedHoles.remove(fromh)
+            self.occupiedHoles.remove(jumped)
+
+            if to in self.occupiedHoles:
                 raise RuntimeError, "Move is not consistent with game state: 'to' hole was occupied."
 
-            if (applyMe.to.row > self.rowCount or applyMe.to.row < 1):
-                raise RuntimeError, "Move is not legal because the 'to' hole does not exist: " + str(applyMe.to)
+            if (to[0] > self.rowCount or to[0] < 1):
+                raise RuntimeError, "Move is not legal because the 'to' hole does not exist: " + str(to)
 
-            self.occupiedHoles.add(applyMe.to)
+            self.occupiedHoles.add(to)
 
         else:
             # normal constructor that sets up board
@@ -127,12 +119,9 @@ class GameState:
     def legalMoves(self):
         legalMoves = []
         for c in self.occupiedHoles:
-            for m in possibleMoves(c, self.rowCount):
-                containsJumped = m.jumped in self.occupiedHoles
-                containsTo = m.to in self.occupiedHoles
-
-                if containsJumped and not containsTo:
-                    legalMoves.append(m)
+            for jumped, to in possibleMoves(c, self.rowCount):
+                if jumped in self.occupiedHoles and to not in self.occupiedHoles:
+                    legalMoves.append(Move(c, jumped, to))
                 
         return legalMoves
     
