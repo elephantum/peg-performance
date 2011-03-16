@@ -108,10 +108,10 @@ class GameState:
 
         else:
             # normal constructor that sets up board
-            self.rowCount = rows;
+            self.rowCount = rows
             self.occupiedHoles = set()
-            for row in range(1, rows + 1):
-                for hole in range(1, row + 1):
+            for row in xrange(1, rows + 1):
+                for hole in xrange(1, row + 1):
                     peg = Coordinate(row, hole)
                     if (not peg == emptyHole):
                         self.occupiedHoles.add(peg)
