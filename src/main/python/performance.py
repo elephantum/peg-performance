@@ -204,44 +204,49 @@ class GameState:
         return "".join(sb)
 
 
-gamesPlayed = 0
-solutions = []
-    
-def search(gs, moveStack):
-    global gamesPlayed
-    global solutions
-    
-    if (gs.pegsRemaining() == 1):
-        #print("Found a winning sequence. Final state:")
-        #print(gs);
+def performance():
+    class GlobalStats:
+        def __init__(self):
+            self.gamesPlayed = 0
+            self.solutions = []
 
-        solutionCopy = []
-        solutionCopy.extend(moveStack)
-        solutions.append(solutionCopy)
-        
-        gamesPlayed += 1
-        
-        return
-    
-    legalMoves = gs.legalMoves()
-    
-    if (len(legalMoves) == 0):
-        gamesPlayed += 1
-        return
-    
-    for m in legalMoves:
-        nextState = gs.applyMove(m)
-        moveStack.append(m)
-        search(nextState, moveStack)
-        moveStack.pop()
+    globalStats = GlobalStats()
 
-from time import time
+    def search(gs, moveStack):
+        if (gs.pegsRemaining() == 1):
+            #print("Found a winning sequence. Final state:")
+            #print(gs);
 
-startTime = time()
-gs = GameState(5, Coordinate(3, 2))
-search(gs, [])
-endTime = time()
+            solutionCopy = []
+            solutionCopy.extend(moveStack)
+            globalStats.solutions.append(solutionCopy)
 
-print "Games played:    %6d" % (gamesPlayed)
-print "Solutions found: %6d" % (len(solutions))
-print "Time elapsed:    %6dms" % ((endTime - startTime) * 1000)
+            globalStats.gamesPlayed += 1
+
+            return
+
+        legalMoves = gs.legalMoves()
+
+        if (len(legalMoves) == 0):
+            globalStats.gamesPlayed += 1
+            return
+
+        for m in legalMoves:
+            nextState = gs.applyMove(m)
+            moveStack.append(m)
+            search(nextState, moveStack)
+            moveStack.pop()
+
+    from time import time
+
+    startTime = time()
+    gs = GameState(5, Coordinate(3, 2))
+    search(gs, [])
+    endTime = time()
+
+    print "Games played:    %6d" % (globalStats.gamesPlayed)
+    print "Solutions found: %6d" % (len(globalStats.solutions))
+    print "Time elapsed:    %6dms" % ((endTime - startTime) * 1000)
+
+if __name__ == '__main__':
+    performance()
