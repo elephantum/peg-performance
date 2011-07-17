@@ -36,74 +36,66 @@
 def Move(fromh, jumped, to):
     return (fromh, jumped, to)
 
-class Coordinate:
-    def __init__(self, row, hole):
-        if (hole < 1):
-            raise RuntimeError, "Illegal hole number: " + hole + " < 1"
-        if (hole > row):
-            raise RuntimeError, "Illegal hole number: " + hole + " on row " + row
-        self.hole = hole
-        self.row = row
+def Coordinate(row, hole):
+    if (hole < 1):
+        raise RuntimeError, "Illegal hole number: " + hole + " < 1"
+    if (hole > row):
+        raise RuntimeError, "Illegal hole number: " + hole + " on row " + row
 
-    def possibleMoves(self, rowCount):
-        moves = []
+    return (row, hole)
 
-        row = self.row
-        hole = self.hole
-        
-        # upward (needs at least 2 rows above)
-        if (row >= 3):
-            
-            # up-left
-            if (hole >= 3):
-                moves.append(Move(
-                        self,
-                        Coordinate(row - 1, hole - 1),
-                        Coordinate(row - 2, hole - 2)))
-            
-            # up-right
-            if (row - hole >= 2):
-                moves.append(Move(
-                        self,
-                        Coordinate(row - 1, hole),
-                        Coordinate(row - 2, hole)))
-        
-        # leftward (needs at least 2 pegs to the left)
+def possibleMoves(self, rowCount):
+    moves = []
+
+    row, hole = self
+
+    # upward (needs at least 2 rows above)
+    if (row >= 3):
+
+        # up-left
         if (hole >= 3):
             moves.append(Move(
                     self,
-                    Coordinate(row, hole - 1),
-                    Coordinate(row, hole - 2)))
-        
-        # rightward (needs at least 2 holes to the right)
+                    Coordinate(row - 1, hole - 1),
+                    Coordinate(row - 2, hole - 2)))
+
+        # up-right
         if (row - hole >= 2):
             moves.append(Move(
                     self,
-                    Coordinate(row, hole + 1),
-                    Coordinate(row, hole + 2)))
+                    Coordinate(row - 1, hole),
+                    Coordinate(row - 2, hole)))
 
-        # downward (needs at least 2 rows below)
-        if (rowCount - row >= 2):
-            
-            # down-left (always possible when there are at least 2 rows below)
-            moves.append(Move(
-                    self,
-                    Coordinate(row + 1, hole),
-                    Coordinate(row + 2, hole)))
-            
-            # down-right (always possible when there are at least 2 rows below)
-            moves.append(Move(
-                    self,
-                    Coordinate(row + 1, hole + 1),
-                    Coordinate(row + 2, hole + 2)))
-        
-        return moves
-    
-    def __str__(self):
-        return "r" + str(self.row) + "h" + str(self.hole)
+    # leftward (needs at least 2 pegs to the left)
+    if (hole >= 3):
+        moves.append(Move(
+                self,
+                Coordinate(row, hole - 1),
+                Coordinate(row, hole - 2)))
 
-    def __eq__(self, other):
-        return self.row == other.row and self.hole == other.hole
+    # rightward (needs at least 2 holes to the right)
+    if (row - hole >= 2):
+        moves.append(Move(
+                self,
+                Coordinate(row, hole + 1),
+                Coordinate(row, hole + 2)))
+
+    # downward (needs at least 2 rows below)
+    if (rowCount - row >= 2):
+
+        # down-left (always possible when there are at least 2 rows below)
+        moves.append(Move(
+                self,
+                Coordinate(row + 1, hole),
+                Coordinate(row + 2, hole)))
+
+        # down-right (always possible when there are at least 2 rows below)
+        moves.append(Move(
+                self,
+                Coordinate(row + 1, hole + 1),
+                Coordinate(row + 2, hole + 2)))
+
+    return moves
 
 
 class GameState:
@@ -129,7 +121,7 @@ class GameState:
             if apply_to in self.occupiedHoles:
                 raise RuntimeError, "Move is not consistent with game state: 'to' hole was occupied."
 
-            if (apply_to.row > self.rowCount or apply_to.row < 1):
+            if (apply_to[0] > self.rowCount or apply_to[0] < 1):
                 raise RuntimeError, "Move is not legal because the 'to' hole does not exist: " + str(apply_to)
 
             self.occupiedHoles.append(apply_to)
@@ -147,8 +139,8 @@ class GameState:
     def legalMoves(self):
         legalMoves = []
         for c in self.occupiedHoles:
-            possibleMoves = c.possibleMoves(self.rowCount);
-            for m in possibleMoves:
+            possibleMovesList = possibleMoves(c, self.rowCount);
+            for m in possibleMovesList:
                 containsJumped = m[1] in self.occupiedHoles
                 containsTo = m[2] in self.occupiedHoles
 
