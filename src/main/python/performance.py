@@ -96,41 +96,22 @@ def possibleMoves(self, rowCount):
 
 class GameState:
 
-    def __init__(self, rows, emptyHole, initialState=None, applyMe=None):
+    @classmethod
+    def setupBoard(cls, rows, emptyHole):
+        # normal constructor that sets up board
+        rowCount = rows;
+        occupiedHoles = set()
+        for row in range(1, rows + 1):
+            for hole in range(1, row + 1):
+                peg = Coordinate(row, hole)
+                if (not peg == emptyHole):
+                    occupiedHoles.add(peg)
 
-        if initialState != None:
-            # top-secret constructor overload for applying a move
-            self.rowCount = initialState.rowCount
-            self.occupiedHoles = set()
-            self.occupiedHoles.update(initialState.occupiedHoles)
+        return GameState(rowCount, occupiedHoles)
 
-            # Note to those comparing this implementation to the others:
-            # List.remove() raises ValueError if thr requested item is
-            # not present, so the explicit errors are not raised here.
-            # The self-checking nature of this method is still intact.
-
-            apply_fromh, apply_jumped, apply_to = applyMe
-
-            self.occupiedHoles.remove(apply_fromh)
-            self.occupiedHoles.remove(apply_jumped)
-
-            if apply_to in self.occupiedHoles:
-                raise RuntimeError, "Move is not consistent with game state: 'to' hole was occupied."
-
-            if (apply_to[0] > self.rowCount or apply_to[0] < 1):
-                raise RuntimeError, "Move is not legal because the 'to' hole does not exist: " + str(apply_to)
-
-            self.occupiedHoles.add(apply_to)
-
-        else:
-            # normal constructor that sets up board
-            self.rowCount = rows;
-            self.occupiedHoles = set()
-            for row in range(1, rows + 1):
-                for hole in range(1, row + 1):
-                    peg = Coordinate(row, hole)
-                    if (not peg == emptyHole):
-                        self.occupiedHoles.add(peg)
+    def __init__(self, rowCount, occupiedHoles):
+        self.rowCount = rowCount
+        self.occupiedHoles = occupiedHoles
 
     def legalMoves(self):
         legalMoves = []
@@ -144,9 +125,30 @@ class GameState:
                 
         return legalMoves
     
-    
     def applyMove(self, move):
-        return GameState(None, None, self, move)
+        # top-secret constructor overload for applying a move
+        occupiedHoles = set()
+        occupiedHoles.update(self.occupiedHoles)
+
+        # Note to those comparing this implementation to the others:
+        # List.remove() raises ValueError if thr requested item is
+        # not present, so the explicit errors are not raised here.
+        # The self-checking nature of this method is still intact.
+
+        apply_fromh, apply_jumped, apply_to = move
+
+        occupiedHoles.remove(apply_fromh)
+        occupiedHoles.remove(apply_jumped)
+
+        if apply_to in occupiedHoles:
+            raise RuntimeError, "Move is not consistent with game state: 'to' hole was occupied."
+
+        if (apply_to[0] > self.rowCount or apply_to[0] < 1):
+            raise RuntimeError, "Move is not legal because the 'to' hole does not exist: " + str(apply_to)
+
+        occupiedHoles.add(apply_to)
+
+        return GameState(self.rowCount, occupiedHoles)
 
     def pegsRemaining(self):
         return len(self.occupiedHoles)
@@ -203,7 +205,7 @@ def performance():
     from time import time
 
     startTime = time()
-    gs = GameState(5, Coordinate(3, 2))
+    gs = GameState.setupBoard(5, Coordinate(3, 2))
     search(gs, [])
     endTime = time()
 
