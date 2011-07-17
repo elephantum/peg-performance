@@ -33,15 +33,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-class Move:
-    def __init__(self, fromh, jumped, to):
-        self.fromh = fromh
-        self.jumped = jumped
-        self.to = to
-
-    def __str__(self):
-        return str(self.fromh) + " -> " + str(self.jumped) + " -> " + str(self.to)
-
+def Move(fromh, jumped, to):
+    return (fromh, jumped, to)
 
 class Coordinate:
     def __init__(self, row, hole):
@@ -128,16 +121,18 @@ class GameState:
             # not present, so the explicit errors are not raised here.
             # The self-checking nature of this method is still intact.
 
-            self.occupiedHoles.remove(applyMe.fromh)
-            self.occupiedHoles.remove(applyMe.jumped)
+            apply_fromh, apply_jumped, apply_to = applyMe
 
-            if applyMe.to in self.occupiedHoles:
+            self.occupiedHoles.remove(apply_fromh)
+            self.occupiedHoles.remove(apply_jumped)
+
+            if apply_to in self.occupiedHoles:
                 raise RuntimeError, "Move is not consistent with game state: 'to' hole was occupied."
 
-            if (applyMe.to.row > self.rowCount or applyMe.to.row < 1):
-                raise RuntimeError, "Move is not legal because the 'to' hole does not exist: " + str(applyMe.to)
+            if (apply_to.row > self.rowCount or apply_to.row < 1):
+                raise RuntimeError, "Move is not legal because the 'to' hole does not exist: " + str(apply_to)
 
-            self.occupiedHoles.append(applyMe.to)
+            self.occupiedHoles.append(apply_to)
 
         else:
             # normal constructor that sets up board
@@ -154,8 +149,8 @@ class GameState:
         for c in self.occupiedHoles:
             possibleMoves = c.possibleMoves(self.rowCount);
             for m in possibleMoves:
-                containsJumped = m.jumped in self.occupiedHoles
-                containsTo = m.to in self.occupiedHoles
+                containsJumped = m[1] in self.occupiedHoles
+                containsTo = m[2] in self.occupiedHoles
 
                 if containsJumped and not containsTo:
                     legalMoves.append(m)
