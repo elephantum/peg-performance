@@ -45,8 +45,6 @@ def Coordinate(row, hole):
     return (row, hole)
 
 def possibleMoves(self, rowCount):
-    moves = []
-
     row, hole = self
 
     # upward (needs at least 2 rows above)
@@ -54,48 +52,46 @@ def possibleMoves(self, rowCount):
 
         # up-left
         if (hole >= 3):
-            moves.append(Move(
+            yield Move(
                     self,
                     Coordinate(row - 1, hole - 1),
-                    Coordinate(row - 2, hole - 2)))
+                    Coordinate(row - 2, hole - 2))
 
         # up-right
         if (row - hole >= 2):
-            moves.append(Move(
+            yield Move(
                     self,
                     Coordinate(row - 1, hole),
-                    Coordinate(row - 2, hole)))
+                    Coordinate(row - 2, hole))
 
     # leftward (needs at least 2 pegs to the left)
     if (hole >= 3):
-        moves.append(Move(
+        yield Move(
                 self,
                 Coordinate(row, hole - 1),
-                Coordinate(row, hole - 2)))
+                Coordinate(row, hole - 2))
 
     # rightward (needs at least 2 holes to the right)
     if (row - hole >= 2):
-        moves.append(Move(
+        yield Move(
                 self,
                 Coordinate(row, hole + 1),
-                Coordinate(row, hole + 2)))
+                Coordinate(row, hole + 2))
 
     # downward (needs at least 2 rows below)
     if (rowCount - row >= 2):
 
         # down-left (always possible when there are at least 2 rows below)
-        moves.append(Move(
+        yield Move(
                 self,
                 Coordinate(row + 1, hole),
-                Coordinate(row + 2, hole)))
+                Coordinate(row + 2, hole))
 
         # down-right (always possible when there are at least 2 rows below)
-        moves.append(Move(
+        yield Move(
                 self,
                 Coordinate(row + 1, hole + 1),
-                Coordinate(row + 2, hole + 2)))
-
-    return moves
+                Coordinate(row + 2, hole + 2))
 
 
 class GameState:
@@ -139,8 +135,7 @@ class GameState:
     def legalMoves(self):
         legalMoves = []
         for c in self.occupiedHoles:
-            possibleMovesList = possibleMoves(c, self.rowCount);
-            for m in possibleMovesList:
+            for m in possibleMoves(c, self.rowCount):
                 containsJumped = m[1] in self.occupiedHoles
                 containsTo = m[2] in self.occupiedHoles
 
