@@ -39,19 +39,6 @@ class Move:
         self.jumped = jumped
         self.to = to
 
-    def get_fromh(self):
-        return self.fromh
-
-    def get_jumped(self):
-        return self.jumped
-
-    def get_to(self):
-        return self.to
-
-    fromh = property(get_fromh)
-    jumped = property(get_jumped)
-    to = property(get_to)
-
     def __str__(self):
         return str(self.fromh) + " -> " + str(self.jumped) + " -> " + str(self.to)
 
@@ -64,15 +51,6 @@ class Coordinate:
             raise RuntimeError, "Illegal hole number: " + hole + " on row " + row
         self.hole = hole
         self.row = row
-
-    def get_hole(self):
-        return self.hole
-
-    def get_row(self):
-        return self.row
-
-    hole = property(get_row)
-    row = property(get_hole)
 
     def possibleMoves(self, rowCount):
         moves = []
