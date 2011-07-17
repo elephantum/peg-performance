@@ -101,8 +101,8 @@ class GameState:
         if initialState != None:
             # top-secret constructor overload for applying a move
             self.rowCount = initialState.rowCount
-            self.occupiedHoles = []
-            self.occupiedHoles.extend(initialState.occupiedHoles)
+            self.occupiedHoles = set()
+            self.occupiedHoles.update(initialState.occupiedHoles)
 
             # Note to those comparing this implementation to the others:
             # List.remove() raises ValueError if thr requested item is
@@ -120,17 +120,17 @@ class GameState:
             if (apply_to[0] > self.rowCount or apply_to[0] < 1):
                 raise RuntimeError, "Move is not legal because the 'to' hole does not exist: " + str(apply_to)
 
-            self.occupiedHoles.append(apply_to)
+            self.occupiedHoles.add(apply_to)
 
         else:
             # normal constructor that sets up board
             self.rowCount = rows;
-            self.occupiedHoles = []
+            self.occupiedHoles = set()
             for row in range(1, rows + 1):
                 for hole in range(1, row + 1):
                     peg = Coordinate(row, hole)
                     if (not peg == emptyHole):
-                        self.occupiedHoles.append(peg)
+                        self.occupiedHoles.add(peg)
 
     def legalMoves(self):
         legalMoves = []
