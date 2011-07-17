@@ -54,52 +54,55 @@ class Coordinate:
 
     def possibleMoves(self, rowCount):
         moves = []
+
+        row = self.row
+        hole = self.hole
         
         # upward (needs at least 2 rows above)
-        if (self.row >= 3):
+        if (row >= 3):
             
             # up-left
-            if (self.hole >= 3):
+            if (hole >= 3):
                 moves.append(Move(
                         self,
-                        Coordinate(self.row - 1, self.hole - 1),
-                        Coordinate(self.row - 2, self.hole - 2)))
+                        Coordinate(row - 1, hole - 1),
+                        Coordinate(row - 2, hole - 2)))
             
             # up-right
-            if (self.row - self.hole >= 2):
+            if (row - hole >= 2):
                 moves.append(Move(
                         self,
-                        Coordinate(self.row - 1, self.hole),
-                        Coordinate(self.row - 2, self.hole)))
+                        Coordinate(row - 1, hole),
+                        Coordinate(row - 2, hole)))
         
         # leftward (needs at least 2 pegs to the left)
-        if (self.hole >= 3):
+        if (hole >= 3):
             moves.append(Move(
                     self,
-                    Coordinate(self.row, self.hole - 1),
-                    Coordinate(self.row, self.hole - 2)))
+                    Coordinate(row, hole - 1),
+                    Coordinate(row, hole - 2)))
         
         # rightward (needs at least 2 holes to the right)
-        if (self.row - self.hole >= 2):
+        if (row - hole >= 2):
             moves.append(Move(
                     self,
-                    Coordinate(self.row, self.hole + 1),
-                    Coordinate(self.row, self.hole + 2)))
+                    Coordinate(row, hole + 1),
+                    Coordinate(row, hole + 2)))
 
         # downward (needs at least 2 rows below)
-        if (rowCount - self.row >= 2):
+        if (rowCount - row >= 2):
             
             # down-left (always possible when there are at least 2 rows below)
             moves.append(Move(
                     self,
-                    Coordinate(self.row + 1, self.hole),
-                    Coordinate(self.row + 2, self.hole)))
+                    Coordinate(row + 1, hole),
+                    Coordinate(row + 2, hole)))
             
             # down-right (always possible when there are at least 2 rows below)
             moves.append(Move(
                     self,
-                    Coordinate(self.row + 1, self.hole + 1),
-                    Coordinate(self.row + 2, self.hole + 2)))
+                    Coordinate(row + 1, hole + 1),
+                    Coordinate(row + 2, hole + 2)))
         
         return moves
     
