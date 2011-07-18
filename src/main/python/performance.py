@@ -122,8 +122,7 @@ class GameState:
     
     def applyMove(self, move):
         # top-secret constructor overload for applying a move
-        occupiedHoles = set()
-        occupiedHoles.update(self.occupiedHoles)
+        occupiedHoles = self.occupiedHoles.copy()
 
         # Note to those comparing this implementation to the others:
         # List.remove() raises ValueError if thr requested item is
