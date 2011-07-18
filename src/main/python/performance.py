@@ -33,16 +33,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-def Move(fromh, jumped, to):
-    return (fromh, jumped, to)
+#def Move(fromh, jumped, to):
+#    return (fromh, jumped, to)
 
-def Coordinate(row, hole):
-    if (hole < 1):
-        raise RuntimeError, "Illegal hole number: " + hole + " < 1"
-    if (hole > row):
-        raise RuntimeError, "Illegal hole number: " + hole + " on row " + row
-
-    return (row, hole)
+#def Coordinate(row, hole):
+#    return (row, hole)
 
 def possibleMoves(self, rowCount):
     row, hole = self
@@ -52,46 +47,46 @@ def possibleMoves(self, rowCount):
 
         # up-left
         if (hole >= 3):
-            yield Move(
-                    self,
-                    Coordinate(row - 1, hole - 1),
-                    Coordinate(row - 2, hole - 2))
+            yield (
+                self,
+                (row - 1, hole - 1),
+                (row - 2, hole - 2))
 
         # up-right
         if (row - hole >= 2):
-            yield Move(
-                    self,
-                    Coordinate(row - 1, hole),
-                    Coordinate(row - 2, hole))
+            yield (
+                self,
+                (row - 1, hole),
+                (row - 2, hole))
 
     # leftward (needs at least 2 pegs to the left)
     if (hole >= 3):
-        yield Move(
-                self,
-                Coordinate(row, hole - 1),
-                Coordinate(row, hole - 2))
+        yield (
+            self,
+            (row, hole - 1),
+            (row, hole - 2))
 
     # rightward (needs at least 2 holes to the right)
     if (row - hole >= 2):
-        yield Move(
-                self,
-                Coordinate(row, hole + 1),
-                Coordinate(row, hole + 2))
+        yield (
+            self,
+            (row, hole + 1),
+            (row, hole + 2))
 
     # downward (needs at least 2 rows below)
     if (rowCount - row >= 2):
 
         # down-left (always possible when there are at least 2 rows below)
-        yield Move(
-                self,
-                Coordinate(row + 1, hole),
-                Coordinate(row + 2, hole))
+        yield (
+            self,
+            (row + 1, hole),
+            (row + 2, hole))
 
         # down-right (always possible when there are at least 2 rows below)
-        yield Move(
-                self,
-                Coordinate(row + 1, hole + 1),
-                Coordinate(row + 2, hole + 2))
+        yield (
+            self,
+            (row + 1, hole + 1),
+            (row + 2, hole + 2))
 
 
 class GameState:
@@ -103,7 +98,7 @@ class GameState:
         occupiedHoles = set()
         for row in range(1, rows + 1):
             for hole in range(1, row + 1):
-                peg = Coordinate(row, hole)
+                peg = (row, hole)
                 if (not peg == emptyHole):
                     occupiedHoles.add(peg)
 
@@ -161,7 +156,7 @@ class GameState:
             for i in range(0, indent):
                 sb.append(" ")
             for hole in range(1, row + 1):
-                if Coordinate(row, hole) in self.occupiedHoles:
+                if (row, hole) in self.occupiedHoles:
                     sb.append(" *")
                 else:
                     sb.append(" O")
@@ -205,7 +200,7 @@ def performance():
     from time import time
 
     startTime = time()
-    gs = GameState.setupBoard(5, Coordinate(3, 2))
+    gs = GameState.setupBoard(5, (3, 2))
     search(gs, [])
     endTime = time()
 
