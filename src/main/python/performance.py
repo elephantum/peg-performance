@@ -111,12 +111,12 @@ class GameState:
     def legalMoves(self):
         legalMoves = []
         for c in self.occupiedHoles:
-            for m in possibleMoves(c, self.rowCount):
-                containsJumped = m[1] in self.occupiedHoles
-                containsTo = m[2] in self.occupiedHoles
+            for _, jumped, to in possibleMoves(c, self.rowCount):
+                containsJumped = jumped in self.occupiedHoles
+                containsTo = to in self.occupiedHoles
 
                 if containsJumped and not containsTo:
-                    legalMoves.append(m)
+                    legalMoves.append((c, jumped, to))
                 
         return legalMoves
     
@@ -130,6 +130,7 @@ class GameState:
         # The self-checking nature of this method is still intact.
 
         apply_fromh, apply_jumped, apply_to = move
+        apply_to_row, apply_to_hole = apply_to
 
         occupiedHoles.remove(apply_fromh)
         occupiedHoles.remove(apply_jumped)
@@ -137,7 +138,7 @@ class GameState:
         if apply_to in occupiedHoles:
             raise RuntimeError, "Move is not consistent with game state: 'to' hole was occupied."
 
-        if (apply_to[0] > self.rowCount or apply_to[0] < 1):
+        if (apply_to_row > self.rowCount or apply_to_hole < 1):
             raise RuntimeError, "Move is not legal because the 'to' hole does not exist: " + str(apply_to)
 
         occupiedHoles.add(apply_to)
